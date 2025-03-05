@@ -21,10 +21,16 @@
     <button onclick="openDoor(4)">Open Door 4</button>
 
     <script>
-        // Firebase configuration
-        const firebaseConfig = {
-            databaseURL: "https://casier-4p-default-rtdb.europe-west1.firebasedatabase.app/"
-        };
+  const firebaseConfig = {
+    apiKey: "AIzaSyCKuUI96FqwGG3QnKOM9iIyKqwpB8u3VGA",
+    authDomain: "casier-4p.firebaseapp.com",
+    databaseURL: "https://casier-4p-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "casier-4p",
+    storageBucket: "casier-4p.firebasestorage.app",
+    messagingSenderId: "713240306801",
+    appId: "1:713240306801:web:924270f06594b4f284a7d0",
+    measurementId: "G-NL57LCHD65"
+  };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
