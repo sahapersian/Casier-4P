@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32 Cabinet Control</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+</head>
+<body>
+    <h1>ESP32 Cabinet Control</h1>
+    
+    <p>Door 1 Status: <span id="door1">Loading...</span></p>
+    <p>Door 2 Status: <span id="door2">Loading...</span></p>
+    <p>Door 3 Status: <span id="door3">Loading...</span></p>
+    <p>Door 4 Status: <span id="door4">Loading...</span></p>
+
+    <button onclick="openDoor(1)">Open Door 1</button>
+    <button onclick="openDoor(2)">Open Door 2</button>
+    <button onclick="openDoor(3)">Open Door 3</button>
+    <button onclick="openDoor(4)">Open Door 4</button>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            databaseURL: "https://casier-4p-default-rtdb.europe-west1.firebasedatabase.app/"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // Update door statuses
+        function updateStatus() {
+            db.ref("/doorStatus").on("value", (snapshot) => {
+                const data = snapshot.val();
+                document.getElementById("door1").innerText = data.door1;
+                document.getElementById("door2").innerText = data.door2;
+                document.getElementById("door3").innerText = data.door3;
+                document.getElementById("door4").innerText = data.door4;
+            });
+        }
+        updateStatus();
+
+        // Send command to ESP32
+        function openDoor(door) {
+            db.ref("/commands/openDoor").set(door.toString());
+        }
+    </script>
+</body>
+</html>
