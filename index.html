@@ -1,55 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ESP32 Cabinet Control</title>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ESP32 Cabinet Control</title>
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
 </head>
 <body>
-    <h1>ESP32 Cabinet Control</h1>
-    
-    <p>Door 1 Status: <span id="door1">Loading...</span></p>
-    <p>Door 2 Status: <span id="door2">Loading...</span></p>
-    <p>Door 3 Status: <span id="door3">Loading...</span></p>
-    <p>Door 4 Status: <span id="door4">Loading...</span></p>
+  <h1>ESP32 Cabinet Control</h1>
+  <p>Door 1 status: <span id="door1Status">Loading...</span></p>
+  <p>Door 2 status: <span id="door2Status">Loading...</span></p>
+  <p>Door 3 status: <span id="door3Status">Loading...</span></p>
+  <p>Door 4 status: <span id="door4Status">Loading...</span></p>
 
-    <button onclick="openDoor(1)">Open Door 1</button>
-    <button onclick="openDoor(2)">Open Door 2</button>
-    <button onclick="openDoor(3)">Open Door 3</button>
-    <button onclick="openDoor(4)">Open Door 4</button>
+  <script>
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyCKuUI96FqwGG3QnKOM9iIyKqwpB8u3VGA",
+      authDomain: "casier-4p.firebaseapp.com",
+      databaseURL: "https://casier-4p-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "casier-4p",
+      storageBucket: "casier-4p.firebasestorage.app",
+      messagingSenderId: "713240306801",
+      appId: "1:713240306801:web:924270f06594b4f284a7d0",
+      measurementId: "G-NL57LCHD65"
+    };
 
-    <script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyCKuUI96FqwGG3QnKOM9iIyKqwpB8u3VGA",
-    authDomain: "casier-4p.firebaseapp.com",
-    databaseURL: "https://casier-4p-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "casier-4p",
-    storageBucket: "casier-4p.firebasestorage.app",
-    messagingSenderId: "713240306801",
-    appId: "1:713240306801:web:924270f06594b4f284a7d0",
-    measurementId: "G-NL57LCHD65"
-  };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
 
-        // Update door statuses
-        function updateStatus() {
-            db.ref("/doorStatus").on("value", (snapshot) => {
-                const data = snapshot.val();
-                document.getElementById("door1").innerText = data.door1;
-                document.getElementById("door2").innerText = data.door2;
-                document.getElementById("door3").innerText = data.door3;
-                document.getElementById("door4").innerText = data.door4;
-            });
-        }
-        updateStatus();
-
-        // Send command to ESP32
-        function openDoor(door) {
-            db.ref("/commands/openDoor").set(door.toString());
-        }
-    </script>
+    // Read door status from Firebase and update the webpage
+    const doorStatusRef = database.ref('doorStatus');
+    doorStatusRef.on('value', (snapshot) => {
+      const doorStatus = snapshot.val();
+      document.querySelector("#door1Status").innerText = doorStatus.door1 || "Unknown";
+      document.querySelector("#door2Status").innerText = doorStatus.door2 || "Unknown";
+      document.querySelector("#door3Status").innerText = doorStatus.door3 || "Unknown";
+      document.querySelector("#door4Status").innerText = doorStatus.door4 || "Unknown";
+    });
+  </script>
 </body>
 </html>
