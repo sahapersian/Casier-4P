@@ -79,15 +79,29 @@
     // Function to update door status
     function updateDoorStatus(doorNumber, status) {
         const statusElement = document.getElementById("door" + doorNumber + "Status");
-        statusElement.innerText = "Status: " + status;
-        statusElement.style.color = status === "open" ? "green" : "red";
+
+        if (status === "open") {
+            statusElement.innerText = "Status: Open";
+            statusElement.style.color = "green";
+        } else if (status === "closed") {
+            statusElement.innerText = "Status: Closed";
+            statusElement.style.color = "red";
+        } else if (status === "opened") {
+            statusElement.innerText = "Status: Opened";
+            statusElement.style.color = "green";  // You can choose a different color for "opened"
+        } else {
+            statusElement.innerText = "Status: Disconnected";
+            statusElement.style.color = "gray";
+        }
     }
 
     // Function to send open command
     function openDoor(doorNumber) {
         const doorRef = database.ref("doorStatus/door" + doorNumber);
         doorRef.set("open").then(() => {
-            alert("Door " + doorNumber + " is now open.");
+            // Immediately update status to "open" when command is sent
+            updateDoorStatus(doorNumber, "open");
+            alert("Door " + doorNumber + " is now opening...");
         }).catch((error) => {
             console.error("Error opening door:", error);
         });
