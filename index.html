@@ -52,7 +52,6 @@
         }
     </style>
 
-
 <script>
     // Firebase configuration
     var firebaseConfig = {
@@ -115,8 +114,33 @@
 
     // Call checkDoorStatus when the page loads
     window.onload = checkDoorStatus;
-
-    // Firebase offline listener
-    firebase.database().goOffline();
-    firebase.database().goOnline();
 </script>
+</head>
+<body>
+    <h1>ESP32 Cabinet Control</h1>
+
+    <div class="door">
+        <p>Door 1</p>
+        <p id="door1Status" class="status">Loading...</p>
+        <button class="btn" onclick="openDoor(1)">Open Door 1</button>
+    </div>
+
+    <div class="door">
+        <p>Door 2</p>
+        <p id="door2Status" class="status">Loading...</p>
+        <button class="btn" onclick="openDoor(2)">Open Door 2</button>
+    </div>
+
+    <div class="door">
+        <p>Door 3</p>
+        <p id="door3Status" class="status">Loading...</p>
+        <button class="btn" onclick="openDoor(3)">Open Door 3</button>
+    </div>
+
+    <div class="door">
+        <p>Door 4</p>
+        <p id="door4Status" class="status">Loading...</p>
+        <button class="btn" onclick="openDoor(4)">Open Door 4</button>
+    </div>
+</body>
+</html>
