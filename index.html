@@ -3,122 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ESP32 Door Status</title>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <title>ESP32 Cabinet Control</title>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-database.js"></script>
+
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
+            background-color: #f4f4f4;
+            padding: 20px;
         }
-        #connectionStatus {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 20px;
-            font-size: 18px;
-            font-weight: bold;
+        h1 {
+            color: #333;
         }
-        #lamp {
+        .lamp {
             width: 20px;
             height: 20px;
+            background-color: gray;
             border-radius: 50%;
-            background-color: red;
+            display: inline-block;
+            margin-left: 10px;
         }
-        table {
-            width: 50%;
-            margin: 20px auto;
-            border-collapse: collapse;
+        .door {
+            display: inline-block;
+            padding: 15px;
+            margin: 10px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
         }
-        th, td {
-            border: 1px solid black;
+        .btn {
+            display: block;
+            width: 100%;
             padding: 10px;
+            font-size: 18px;
+            color: white;
+            background-color: #007bff;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .status {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 10px;
         }
     </style>
-</head>
-<body>
-
-    <!-- Connectivity Status -->
-    <div id="connectionStatus">
-        <div id="lamp"></div>
-        <span id="statusText">ESP32 Offline</span>
-    </div>
-
-    <!-- Door Status Table -->
-    <h2>Door Status</h2>
-    <table>
-        <tr>
-            <th>Door</th>
-            <th>Status</th>
-        </tr>
-        <tr><td>Door 1</td><td id="door1">Waiting...</td></tr>
-        <tr><td>Door 2</td><td id="door2">Waiting...</td></tr>
-        <tr><td>Door 3</td><td id="door3">Waiting...</td></tr>
-        <tr><td>Door 4</td><td id="door4">Waiting...</td></tr>
-    </table>
-
+    
     <script>
-    // Firebase configuration
-    var firebaseConfig = {
-        apiKey: "AIzaSyCKuUI96FqwGG3QnKOM9iIyKqwpB8u3VGA",
-        authDomain: "casier-4p.firebaseapp.com",
-        databaseURL: "https://casier-4p-default-rtdb.europe-west1.firebasedatabase.app",
-        projectId: "casier-4p",
-        storageBucket: "casier-4p.firebasestorage.app",
-        messagingSenderId: "713240306801",
-        appId: "1:713240306801:web:924270f06594b4f284a7d0",
-        measurementId: "G-NL57LCHD65"
+        // Firebase configuration
+        var firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            databaseURL: "YOUR_DATABASE_URL",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
 
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
-        var database = firebase.database();
+        const database = firebase.database();
 
-        let lastUpdateTime = 0;
-
-        function updateConnectionStatus() {
-            const now = Date.now();
-            const lamp = document.getElementById("lamp");
-            const statusText = document.getElementById("statusText");
-
-            if (now - lastUpdateTime < 5000) {
-                lamp.style.backgroundColor = "green";
-                statusText.innerText = "ESP32 Online";
-                statusText.style.color = "green";
-            } else {
-                lamp.style.backgroundColor = "red";
-                statusText.innerText = "ESP32 Offline";
-                statusText.style.color = "red";
-            }
+        function updateLamp(status) {
+            const lamp = document.getElementById("connectionLamp");
+            lamp.style.backgroundColor = status ? "green" : "red";
         }
 
-        function updateDoorStatus(door, status) {
-            document.getElementById("door" + door).innerText = status;
+        function checkConnection() {
+            const connectedRef = database.ref(".info/connected");
+            connectedRef.on("value", function(snapshot) {
+                updateLamp(snapshot.val());
+            });
+        }
+        
+        function openDoor(doorNumber) {
+            const doorRef = database.ref("doorStatus/door" + doorNumber);
+            doorRef.set("open").then(() => {
+                alert("Door " + doorNumber + " is now opening...");
+            }).catch((error) => {
+                console.error("Error opening door:", error);
+            });
         }
 
         function checkDoorStatus() {
             for (let i = 1; i <= 4; i++) {
                 const doorRef = database.ref("doorStatus/door" + i);
-
                 doorRef.on("value", function(snapshot) {
-                    if (snapshot.exists()) {
-                        updateDoorStatus(i, snapshot.val());
-                        lastUpdateTime = Date.now();
-                    } else {
-                        updateDoorStatus(i, "Disconnected");
-                    }
-                }, function(error) {
-                    console.error("Firebase error:", error);
-                    updateDoorStatus(i, "Disconnected");
+                    document.getElementById("door" + i + "Status").innerText = "Status: " + snapshot.val();
                 });
             }
-
-            setInterval(updateConnectionStatus, 2000);
         }
 
-        window.onload = checkDoorStatus;
+        window.onload = function() {
+            checkDoorStatus();
+            checkConnection();
+        };
     </script>
+</head>
+<body>
+    <h1>ESP32 Cabinet Control <span class="lamp" id="connectionLamp"></span></h1>
 
+    <div class="door">
+        <p>Door 1</p>
+        <p id="door1Status" class="status">Loading...</p>
+        <button class="btn" onclick="openDoor(1)">Open Door 1</button>
+    </div>
+
+    <div class="door">
+        <p>Door 2</p>
+        <p id="door2Status" class="status">Loading...</p>
+        <button class="btn" onclick="openDoor(2)">Open Door 2</button>
+    </div>
+
+    <div class="door">
+        <p>Door 3</p>
+        <p id="door3Status" class="status">Loading...</p>
+        <button class="btn" onclick="openDoor(3)">Open Door 3</button>
+    </div>
+
+    <div class="door">
+        <p>Door 4</p>
+        <p id="door4Status" class="status">Loading...</p>
+        <button class="btn" onclick="openDoor(4)">Open Door 4</button>
+    </div>
 </body>
 </html>
