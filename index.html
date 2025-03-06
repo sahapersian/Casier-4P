@@ -1,133 +1,67 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ESP32 Cabinet Control</title>
+<script>
+    // Firebase configuration
+    var firebaseConfig = {
+        apiKey: "AIzaSyCKuUI96FqwGG3QnKOM9iIyKqwpB8u3VGA",
+        authDomain: "casier-4p.firebaseapp.com",
+        databaseURL: "https://casier-4p-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "casier-4p",
+        storageBucket: "casier-4p.firebasestorage.app",
+        messagingSenderId: "713240306801",
+        appId: "1:713240306801:web:924270f06594b4f284a7d0",
+        measurementId: "G-NL57LCHD65"
+    };
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-database.js"></script>
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background-color: #f4f4f4;
-            padding: 20px;
-        }
-        h1 {
-            color: #333;
-        }
-        .door {
-            display: inline-block;
-            padding: 15px;
-            margin: 10px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
-        }
-        .door p {
-            font-size: 18px;
-            margin: 10px 0;
-        }
-        .btn {
-            display: block;
-            width: 100%;
-            padding: 10px;
-            font-size: 18px;
-            color: white;
-            background-color: #007bff;
-            border: none;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-        .btn:hover {
-            background-color: #0056b3;
-        }
-        .status {
-            font-size: 18px;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-    </style>
+    // Display "Receiving Data..." during loading or disconnection
+    function setReceivingData(doorNumber) {
+        const statusElement = document.getElementById("door" + doorNumber + "Status");
+        statusElement.innerText = "Receiving Data...";
+        statusElement.style.color = "orange";  // Set color to orange for loading
+    }
 
-    <script>
-        // Firebase configuration
-        var firebaseConfig = {
-            apiKey: "AIzaSyCKuUI96FqwGG3QnKOM9iIyKqwpB8u3VGA",
-            authDomain: "casier-4p.firebaseapp.com",
-            databaseURL: "https://casier-4p-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "casier-4p",
-            storageBucket: "casier-4p.firebasestorage.app",
-            messagingSenderId: "713240306801",
-            appId: "1:713240306801:web:924270f06594b4f284a7d0",
-            measurementId: "G-NL57LCHD65"
-        };
+    // Function to update door status
+    function updateDoorStatus(doorNumber, status) {
+        const statusElement = document.getElementById("door" + doorNumber + "Status");
+        statusElement.innerText = "Status: " + status;
+        statusElement.style.color = status === "open" ? "green" : "red";
+    }
 
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+    // Function to send open command
+    function openDoor(doorNumber) {
+        const doorRef = database.ref("doorStatus/door" + doorNumber);
+        doorRef.set("open").then(() => {
+            alert("Door " + doorNumber + " is now open.");
+        }).catch((error) => {
+            console.error("Error opening door:", error);
+        });
+    }
 
-        // Function to update door status
-        function updateDoorStatus(doorNumber, status) {
-            const statusElement = document.getElementById("door" + doorNumber + "Status");
-            statusElement.innerText = "Status: " + status;
-            statusElement.style.color = status === "open" ? "green" : "red";
-        }
+    // Check door statuses
+    function checkDoorStatus() {
+        for (let i = 1; i <= 4; i++) {
+            const doorRef = database.ref("doorStatus/door" + i);
+            setReceivingData(i);  // Set "Receiving Data..." initially
 
-        // Function to send open command
-        function openDoor(doorNumber) {
-            const doorRef = database.ref("doorStatus/door" + doorNumber);
-            doorRef.set("open").then(() => {
-                alert("Door " + doorNumber + " is now open.");
-            }).catch((error) => {
-                console.error("Error opening door:", error);
+            doorRef.on("value", function(snapshot) {
+                if (snapshot.exists()) {
+                    updateDoorStatus(i, snapshot.val());
+                } else {
+                    updateDoorStatus(i, "Disconnected");
+                }
+            }, function(error) {
+                console.error("Firebase error:", error);
+                updateDoorStatus(i, "Disconnected");
             });
         }
+    }
 
-        // Check door statuses
-        function checkDoorStatus() {
-            for (let i = 1; i <= 4; i++) {
-                const doorRef = database.ref("doorStatus/door" + i);
-                doorRef.on("value", function(snapshot) {
-                    if (snapshot.exists()) {
-                        updateDoorStatus(i, snapshot.val());
-                    }
-                });
-            }
-        }
+    // Call checkDoorStatus when the page loads
+    window.onload = checkDoorStatus;
 
-        // Call checkDoorStatus when the page loads
-        window.onload = checkDoorStatus;
-    </script>
-</head>
-<body>
-    <h1>ESP32 Cabinet Control</h1>
-
-    <div class="door">
-        <p>Door 1</p>
-        <p id="door1Status" class="status">Loading...</p>
-        <button class="btn" onclick="openDoor(1)">Open Door 1</button>
-    </div>
-
-    <div class="door">
-        <p>Door 2</p>
-        <p id="door2Status" class="status">Loading...</p>
-        <button class="btn" onclick="openDoor(2)">Open Door 2</button>
-    </div>
-
-    <div class="door">
-        <p>Door 3</p>
-        <p id="door3Status" class="status">Loading...</p>
-        <button class="btn" onclick="openDoor(3)">Open Door 3</button>
-    </div>
-
-    <div class="door">
-        <p>Door 4</p>
-        <p id="door4Status" class="status">Loading...</p>
-        <button class="btn" onclick="openDoor(4)">Open Door 4</button>
-    </div>
-
-</body>
-</html>
+    // Firebase offline listener
+    firebase.database().goOffline();
+    firebase.database().goOnline();
+</script>
